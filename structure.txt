@@ -1,0 +1,24 @@
+project-root/
+├── public/                     # Static frontend files
+│   ├── index.html              # HTML entry point with CDNs
+│   ├── js/                     # JavaScript components
+│   │   ├── App.js              # Main app component with routing
+│   │   ├── PresentationList.js # Lists presentations and handles creation/joining
+│   │   ├── PresentationRoom.js # Manages the presentation room
+│   │   ├── components/         # Reusable UI components
+│   │   │   ├── SlideNav.js     # Slide navigation panel
+│   │   │   ├── TextBlock.js    # Draggable, editable text block with Markdown
+│   │   │   ├── UserPanel.js    # User list and role management
+│   │   │   ├── Toolbar.js      # Top toolbar with action buttons
+│   │   │   └── PresentationMode.js # Full-screen presentation mode
+│   │   └── main.js             # Entry point to render the app
+├── server/                     # Backend Node.js code (unchanged from previous)
+│   ├── models/
+│   │   ├── Presentation.js
+│   │   └── Slide.js
+│   ├── sockets/
+│   │   └── index.js
+│   └── index.js
+├── .env                        # Environment variables
+├── package.json                # Project dependencies and scripts
+└── README.md                   # Documentation

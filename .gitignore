@@ -1,0 +1,15 @@
+node_modules
+project-root/
+├── public/                     # Static frontend files
+│   ├── index.html              # Entry point for the frontend
+│   └── bundle.js               # React app logic (frontend code)
+├── src/                        # Backend and shared logic
+│   ├── models/                 # Mongoose schemas
+│   │   ├── Presentation.js     # Presentation schema
+│   │   └── Slide.js            # Slide schema
+│   ├── sockets/                # Socket.IO logic
+│   │   └── index.js            # Real-time event handling
+│   └── index.js                # Main Node.js server file
+├── .env                        # Environment variables
+├── package.json                # Project metadata and dependencies
+└── README.md                   # Optional project documentation
