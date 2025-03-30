@@ -26,16 +26,26 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 app.get('/api/presentations', async (req, res) => {
-  const Presentation = require('./models/Presentation');
-  const presentations = await Presentation.find();
-  res.json(presentations);
+  try {
+    const Presentation = require('./models/Presentation');
+    const presentations = await Presentation.find();
+    res.json(presentations);
+  } catch (err) {
+    console.error('Error fetching presentations:', err);
+    res.status(500).json({ error: 'Failed to fetch presentations' });
+  }
 });
 
 app.post('/api/presentations', async (req, res) => {
-  const Presentation = require('./models/Presentation');
-  const presentation = new Presentation(req.body);
-  await presentation.save();
-  res.json(presentation);
+  try {
+    const Presentation = require('./models/Presentation');
+    const presentation = new Presentation(req.body);
+    await presentation.save();
+    res.json(presentation);
+  } catch (err) {
+    console.error('Error creating presentation:', err);
+    res.status(500).json({ error: 'Failed to create presentation' });
+  }
 });
 
 require('./sockets')(io);
