@@ -7,11 +7,16 @@ import UserPanel from './components/UserPanel';
 import Toolbar from './components/Toolbar';
 import PresentationMode from './components/PresentationMode';
 
-// Use Vite's environment variable
 const socketUrl = import.meta.env.VITE_BACKEND_URL || '';
 const socket = io(socketUrl, {
   reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
   transports: ['websocket', 'polling']
+});
+
+socket.on('connect_error', (err) => {
+  console.error('Socket.IO connection error:', err);
 });
 
 function PresentationRoom() {
@@ -21,7 +26,7 @@ function PresentationRoom() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPresenting, setIsPresenting] = useState(false);
   const [error, setError] = useState(null);
-  const nickname = localStorage.getItem('nickname') || '';
+  const nickname = localStorage.getItem('nickname') || 'Guest';
   const navigate = useNavigate();
 
   useEffect(() => {

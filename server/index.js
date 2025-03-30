@@ -7,6 +7,7 @@ const dotenv = require('dotenv');
 const path = require('path');
 
 dotenv.config();
+console.log('MONGO_URI:', process.env.MONGO_URI);
 
 const app = express();
 const server = http.createServer(app);
@@ -15,11 +16,11 @@ const io = new Server(server, { cors: { origin: '*' } });
 app.use(cors());
 app.use(express.json());
 
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../dist')));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../dist', 'index.html'));
-  });
+  app.get('*', (req, res) => res.sendFile(path.join(__dirname, '../dist', 'index.html')));
 } else {
   app.use(express.static(path.join(__dirname, '../public')));
 }
@@ -38,6 +39,11 @@ app.post('/api/presentations', async (req, res) => {
 });
 
 require('./sockets')(io);
+
+if (!process.env.MONGO_URI) {
+  console.error('MONGO_URI is not defined in .env');
+  process.exit(1);
+}
 
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))
