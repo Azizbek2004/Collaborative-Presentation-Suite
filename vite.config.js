@@ -6,14 +6,20 @@ export default defineConfig({
   server: {
     port: 3001,
     proxy: {
-      '/api': 'http://localhost:3000',
-      '/socket.io': {
-        target: 'http://localhost:3000',
-        ws: true,
+      '/api': {
+        target: process.env.VITE_BACKEND_URL || 'http://0.0.0.0:3000',
+        changeOrigin: true,
+        secure: false
       },
-    },
+      '/socket.io': {
+        target: process.env.VITE_BACKEND_URL || 'http://0.0.0.0:3000',
+        ws: true,
+        changeOrigin: true,
+        secure: false
+      }
+    }
   },
   build: {
-    outDir: 'dist',
-  },
+    outDir: 'dist'
+  }
 });

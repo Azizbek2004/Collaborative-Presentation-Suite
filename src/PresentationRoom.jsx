@@ -7,7 +7,12 @@ import UserPanel from './components/UserPanel';
 import Toolbar from './components/Toolbar';
 import PresentationMode from './components/PresentationMode';
 
-const socket = io('http://localhost:3000');
+// Use Vite's environment variable
+const socketUrl = import.meta.env.VITE_BACKEND_URL || '';
+const socket = io(socketUrl, {
+  reconnection: true,
+  transports: ['websocket', 'polling']
+});
 
 function PresentationRoom() {
   const { id } = useParams();
@@ -32,15 +37,15 @@ function PresentationRoom() {
       setRole(role);
     });
 
-    socket.on('slideAdded', (slide) => {
-      setPresentation((prev) => ({ ...prev, slides: [...prev.slides, slide] }));
+    socket.on('slideAdded', slide => {
+      setPresentation(prev => ({ ...prev, slides: [...prev.slides, slide] }));
     });
 
     socket.on('textBlockUpdated', ({ slideId, textBlockId, content, x, y }) => {
-      setPresentation((prev) => {
-        const updatedSlides = prev.slides.map((s) => {
+      setPresentation(prev => {
+        const updatedSlides = prev.slides.map(s => {
           if (s._id === slideId) {
-            const updatedTextBlocks = s.textBlocks.map((tb) =>
+            const updatedTextBlocks = s.textBlocks.map(tb =>
               tb._id === textBlockId ? { ...tb, content, x, y } : tb
             );
             return { ...s, textBlocks: updatedTextBlocks };
@@ -51,20 +56,20 @@ function PresentationRoom() {
       });
     });
 
-    socket.on('updateUsers', (users) => {
-      setPresentation((prev) => ({ ...prev, users }));
+    socket.on('updateUsers', users => {
+      setPresentation(prev => ({ ...prev, users }));
     });
 
-    socket.on('slideRemoved', (slideId) => {
-      setPresentation((prev) => {
-        const newSlides = prev.slides.filter((s) => s._id !== slideId);
+    socket.on('slideRemoved', slideId => {
+      setPresentation(prev => {
+        const newSlides = prev.slides.filter(s => s._id !== slideId);
         const newIndex = Math.min(currentSlide, newSlides.length - 1);
         setCurrentSlide(newIndex >= 0 ? newIndex : 0);
         return { ...prev, slides: newSlides };
       });
     });
 
-    socket.on('error', (err) => setError(err.message || err));
+    socket.on('error', err => setError(err.message || err));
 
     return () => {
       socket.off('init');
@@ -77,10 +82,8 @@ function PresentationRoom() {
   }, [id, navigate]);
 
   if (!nickname) return null;
-  if (error)
-    return <div className="p-4 text-red-600 text-center">Error: {error}</div>;
-  if (!presentation)
-    return <div className="p-4 text-center text-gray-600">Loading...</div>;
+  if (error) return <div className="p-4 text-red-600 text-center">Error: {error}</div>;
+  if (!presentation) return <div className="p-4 text-center text-gray-600">Loading...</div>;
 
   const slide = presentation.slides[currentSlide] || {};
 
@@ -104,59 +107,38 @@ function PresentationRoom() {
           slides={presentation.slides}
           currentSlide={currentSlide}
           setCurrentSlide={setCurrentSlide}
-          removeSlide={(slideId) =>
-            socket.emit('removeSlide', { presentationId: id, slideId })
-          }
+          removeSlide={slideId => socket.emit('removeSlide', { presentationId: id, slideId })}
           role={role}
         />
         <div className="flex-1 p-6 overflow-auto">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">
-            {presentation.name}
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">{presentation.name}</h1>
           <div className="relative border h-[80vh] p-4 rounded-lg bg-white shadow-md">
             {(role === 'creator' || role === 'editor') && (
               <button
-                onClick={() =>
-                  socket.emit('addTextBlock', {
-                    presentationId: id,
-                    slideId: slide._id,
-                  })
-                }
+                onClick={() => socket.emit('addTextBlock', { presentationId: id, slideId: slide._id })}
                 className="absolute top-2 right-2 bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition duration-200"
               >
                 Add Text
               </button>
             )}
-            {slide.textBlocks &&
-              slide.textBlocks.map((tb) => (
-                <TextBlock
-                  key={tb._id}
-                  textBlock={tb}
-                  slideId={slide._id}
-                  role={role}
-                  updateTextBlock={(content, x, y) =>
-                    socket.emit('editTextBlock', {
-                      presentationId: id,
-                      slideId: slide._id,
-                      textBlockId: tb._id,
-                      content,
-                      x,
-                      y,
-                    })
-                  }
-                />
-              ))}
+            {slide.textBlocks && slide.textBlocks.map(tb => (
+              <TextBlock
+                key={tb._id}
+                textBlock={tb}
+                slideId={slide._id}
+                role={role}
+                updateTextBlock={(content, x, y) =>
+                  socket.emit('editTextBlock', { presentationId: id, slideId: slide._id, textBlockId: tb._id, content, x, y })
+                }
+              />
+            ))}
           </div>
         </div>
         {role === 'creator' && (
           <UserPanel
             users={presentation.users}
             changeRole={(userNickname, newRole) =>
-              socket.emit('changeRole', {
-                presentationId: id,
-                userNickname,
-                newRole,
-              })
+              socket.emit('changeRole', { presentationId: id, userNickname, newRole })
             }
           />
         )}
